@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  productId   String   @unique
+  name        String?
+  description String?
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  inventoryRecords InventoryRecord[]
+  predictions      Prediction[]
+
+  @@map("products")
+}
+
+model InventoryRecord {
+  id          String   @id @default(cuid())
+  productId   String
+  stockLevel  Int
+  location    String?
+  lastUpdated DateTime @default(now())
+  updatedBy   String?
+  notes       String?
+
+  // Relations
+  product Product @relation(fields: [productId], references: [productId])
+
+  @@map("inventory_records")
+}
+
+model Prediction {
+  id              String           @id @default(cuid())
+  productId       String
+  currentStock    Int
+  predictedDemand Float?
+  predictedStock  Float?
+  predictionData  Json? // Store raw prediction data from Gradio
+  accuracy        Float?
+  confidence      Float?
+  createdAt       DateTime         @default(now())
+  status          PredictionStatus @default(PENDING)
+
+  // Relations
+  product Product @relation(fields: [productId], references: [productId])
+
+  @@map("predictions")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum PredictionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  PROCESSING
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MANAGER
+}
