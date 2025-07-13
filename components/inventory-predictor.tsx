@@ -21,8 +21,11 @@ export default function InventoryPredictor() {
 	const [productId, setProductId] = useState('');
 	const [currentStock, setCurrentStock] = useState('');
 	const [loading, setLoading] = useState(false);
+	const [batchLoading, setBatchLoading] = useState(false);
 	const [result, setResult] = useState<PredictionResult | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [batchResult, setBatchResult] = useState<any>(null);
+	const [batchError, setBatchError] = useState<string | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -75,8 +78,35 @@ export default function InventoryPredictor() {
 		setError(null);
 	};
 
+	const handleBatchPredict = async () => {
+		setBatchLoading(true);
+		setBatchError(null);
+		setBatchResult(null);
+
+		try {
+			const response = await fetch('/api/batch-predict', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.error || 'Failed to run batch prediction');
+			}
+
+			setBatchResult(data);
+		} catch (err) {
+			setBatchError(err instanceof Error ? err.message : 'An unexpected error occurred');
+		} finally {
+			setBatchLoading(false);
+		}
+	};
+
 	return (
-		<div className="max-w-2xl mx-auto p-6 space-y-6">
+		<div className="max-w-4xl mx-auto space-y-6">
 			<Card>
 				<CardHeader>
 					<CardTitle className="text-2xl font-bold text-center">Inventory Prediction</CardTitle>
@@ -125,6 +155,161 @@ export default function InventoryPredictor() {
 					</form>
 				</CardContent>
 			</Card>
+
+			{/* Batch Prediction Card */}
+			<Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
+				<CardHeader>
+					<CardTitle className="text-lg text-blue-800">Batch Prediction</CardTitle>
+					<p className="text-sm text-blue-600">
+						Run AI predictions for all products in the database and update the prediction records.
+					</p>
+				</CardHeader>
+				<CardContent>
+					<div className="space-y-4">
+						<div className="bg-white/70 p-4 rounded-lg border border-blue-200">
+							<h4 className="font-medium text-blue-800 mb-2">What this does:</h4>
+							<ul className="text-sm text-blue-700 space-y-1">
+								<li>• Fetches all products from the database</li>
+								<li>• Runs AI predictions for each product using current stock levels</li>
+								<li>• Updates the prediction database with new results</li>
+								<li>• Calculates risk levels (Critical, High, Medium, Low)</li>
+							</ul>
+						</div>
+
+						<Button
+							onClick={handleBatchPredict}
+							disabled={batchLoading || loading}
+							className="w-full bg-blue-600 hover:bg-blue-700"
+						>
+							{batchLoading ? 'Running Batch Prediction...' : 'Run Batch Prediction'}
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Batch Error Display */}
+			{batchError && (
+				<Card className="border-red-200 bg-red-50">
+					<CardContent className="pt-6">
+						<div className="flex items-center gap-2">
+							<Badge variant="destructive">Batch Error</Badge>
+							<span className="text-red-700">{batchError}</span>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
+			{/* Batch Results Display */}
+			{batchResult && (
+				<Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
+					<CardHeader>
+						<CardTitle className="text-lg flex items-center gap-2">
+							<Badge variant="default" className="bg-green-600">
+								Success
+							</Badge>
+							Batch Prediction Results
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						{/* Summary Stats */}
+						<div className="bg-white/70 p-4 rounded-lg border border-green-200">
+							<h4 className="font-medium text-gray-800 mb-3">Summary</h4>
+							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+								<div className="text-center p-3 bg-white rounded border">
+									<div className="text-2xl font-bold text-blue-600">
+										{batchResult.summary?.totalProducts || 0}
+									</div>
+									<div className="text-xs text-gray-500 uppercase tracking-wide">Total Products</div>
+								</div>
+								<div className="text-center p-3 bg-white rounded border">
+									<div className="text-2xl font-bold text-green-600">
+										{batchResult.summary?.successfulPredictions || 0}
+									</div>
+									<div className="text-xs text-gray-500 uppercase tracking-wide">Successful</div>
+								</div>
+								<div className="text-center p-3 bg-white rounded border">
+									<div className="text-2xl font-bold text-red-600">
+										{batchResult.summary?.failedPredictions || 0}
+									</div>
+									<div className="text-xs text-gray-500 uppercase tracking-wide">Failed</div>
+								</div>
+								<div className="text-center p-3 bg-white rounded border">
+									<div className="text-2xl font-bold text-purple-600">
+										{batchResult.summary?.successRate || '0%'}
+									</div>
+									<div className="text-xs text-gray-500 uppercase tracking-wide">Success Rate</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Risk Distribution */}
+						{batchResult.summary?.riskDistribution && (
+							<div className="bg-white/70 p-4 rounded-lg border border-green-200">
+								<h4 className="font-medium text-gray-800 mb-3">Risk Distribution</h4>
+								<div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+									{Object.entries(batchResult.summary.riskDistribution).map(([risk, count]) => (
+										<div key={risk} className="text-center p-3 bg-white rounded border">
+											<div
+												className={`text-lg font-bold ${
+													risk === 'CRITICAL'
+														? 'text-red-600'
+														: risk === 'HIGH'
+														? 'text-orange-600'
+														: risk === 'MEDIUM'
+														? 'text-yellow-600'
+														: 'text-green-600'
+												}`}
+											>
+												{count as number}
+											</div>
+											<div className="text-xs text-gray-500 uppercase tracking-wide">{risk}</div>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+
+						{/* Sample Results */}
+						{batchResult.results && batchResult.results.length > 0 && (
+							<div className="bg-white/70 p-4 rounded-lg border border-green-200">
+								<h4 className="font-medium text-gray-800 mb-3">
+									Sample Results ({batchResult.results.length} shown)
+								</h4>
+								<div className="space-y-2 max-h-64 overflow-y-auto">
+									{batchResult.results.map((item: any, index: number) => (
+										<div
+											key={index}
+											className="bg-white p-3 rounded border-l-4 border-l-blue-500 text-sm"
+										>
+											<div className="flex justify-between items-center">
+												<span className="font-mono font-medium">{item.productId}</span>
+												<Badge
+													variant={
+														item.riskLevel === 'CRITICAL'
+															? 'destructive'
+															: item.riskLevel === 'HIGH'
+															? 'secondary'
+															: 'default'
+													}
+												>
+													{item.riskLevel}
+												</Badge>
+											</div>
+											<div className="text-gray-600 mt-1">
+												Stock: {item.currentStock} → Predicted: {item.stockPredicted}
+											</div>
+										</div>
+									))}
+								</div>
+							</div>
+						)}
+
+						<div className="text-sm text-gray-600 bg-white/50 p-3 rounded">
+							<strong>Execution Time:</strong> {batchResult.summary?.executionTime || 'N/A'}
+						</div>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Error Display */}
 			{error && (

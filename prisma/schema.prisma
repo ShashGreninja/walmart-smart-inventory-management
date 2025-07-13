@@ -44,6 +44,7 @@ model Prediction {
   currentStock   Int
   stockPredicted Int
   riskLevel      RiskLevel
+  comment        String? // Additional context like "High Temperature", "Moving Average Trend"
   success        Boolean   @default(true)
   createdAt      DateTime  @default(now())
 
