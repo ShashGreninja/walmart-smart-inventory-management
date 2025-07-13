@@ -375,15 +375,11 @@ const seedDatabase = async () => {
 					description: productData.description,
 				},
 			});
-
 			// Create initial inventory record
 			await prisma.inventoryRecord.create({
 				data: {
 					productId: productData.productId,
 					stockLevel: productData.stockLevel,
-					location: 'Main Warehouse',
-					updatedBy: 'System',
-					notes: `Initial stock setup for ${productData.name} (Reorder Level: ${productData.reorderLevel})`,
 				},
 			});
 

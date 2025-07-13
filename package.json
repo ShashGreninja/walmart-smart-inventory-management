@@ -10,7 +10,10 @@
 		"batch-predict": "tsx scripts/run-batch.ts",
 		"batch-predict-only": "tsx scripts/batch-predictions.ts",
 		"db:seed": "tsx scripts/seed-database.ts",
-		"db:setup": "npx prisma db push && npm run db:seed"
+		"db:seed-predictions": "tsx scripts/seed-predictions.ts",
+		"db:analyze": "tsx scripts/analyze-predictions.ts",
+		"db:setup": "npx prisma db push && npm run db:seed",
+		"db:full-setup": "npx prisma db push && npm run db:seed && npm run db:seed-predictions"
 	},
 	"dependencies": {
 		"@prisma/client": "^6.11.1",
