@@ -18,7 +18,7 @@ interface BatchResult {
 	executionTime: string;
 }
 
-const API_BASE_URL = 'http://localhost:3000'; // Change this if your server runs on a different port
+const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL; // Change this if your server runs on a different port
 const OUTPUT_FILE = 'batch_predictions.json';
 const OUTPUT_DIR = 'batch_results';
 
