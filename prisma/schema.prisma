@@ -30,10 +30,7 @@ model InventoryRecord {
   id          String   @id @default(cuid())
   productId   String
   stockLevel  Int
-  location    String?
   lastUpdated DateTime @default(now())
-  updatedBy   String?
-  notes       String?
 
   // Relations
   product Product @relation(fields: [productId], references: [productId])
@@ -42,16 +39,13 @@ model InventoryRecord {
 }
 
 model Prediction {
-  id              String           @id @default(cuid())
-  productId       String
-  currentStock    Int
-  predictedDemand Float?
-  predictedStock  Float?
-  predictionData  Json? // Store raw prediction data from Gradio
-  accuracy        Float?
-  confidence      Float?
-  createdAt       DateTime         @default(now())
-  status          PredictionStatus @default(PENDING)
+  id             String    @id @default(cuid())
+  productId      String
+  currentStock   Int
+  stockPredicted Int
+  riskLevel      RiskLevel
+  success        Boolean   @default(true)
+  createdAt      DateTime  @default(now())
 
   // Relations
   product Product @relation(fields: [productId], references: [productId])
@@ -70,11 +64,11 @@ model User {
   @@map("users")
 }
 
-enum PredictionStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  PROCESSING
+enum RiskLevel {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
 }
 
 enum UserRole {
