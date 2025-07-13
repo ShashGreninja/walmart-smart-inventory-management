@@ -2,7 +2,7 @@
 
 import { runBatchPredictions } from './batch-predictions.js';
 
-console.log('🎯 Walmart Smart Inventory - Batch Prediction Runner');
+console.log('Walmart Smart Inventory - Batch Prediction Runner');
 console.log('This script will test predictions for products P001 to P040\n');
 
 // Check if server is likely running
@@ -20,10 +20,10 @@ const main = async () => {
 
 	const serverRunning = await checkServer();
 	if (!serverRunning) {
-		console.log("⚠️  Warning: Server doesn't appear to be running on http://localhost:3000");
-		console.log('💡 Make sure to start your Next.js server first with: npm run dev\n');
+		console.log("Warning: Server doesn't appear to be running on http://localhost:3000");
+		console.log('Make sure to start your Next.js server first with: npm run dev\n');
 	} else {
-		console.log('✅ Server is running!\n');
+		console.log('Server is running!\n');
 	}
 
 	await runBatchPredictions();

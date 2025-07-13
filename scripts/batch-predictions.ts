@@ -102,10 +102,10 @@ const runBatchPredictions = async (): Promise<void> => {
 
 			if (result.success) {
 				successCount++;
-				console.log(`✅ ${productId}: Success`);
+				console.log(`${productId}: Success`);
 			} else {
 				failCount++;
-				console.log(`❌ ${productId}: Failed - ${result.error}`);
+				console.log(`${productId}: Failed - ${result.error}`);
 			}
 		} catch (error) {
 			failCount++;
@@ -117,7 +117,7 @@ const runBatchPredictions = async (): Promise<void> => {
 				error: error instanceof Error ? error.message : 'Request failed',
 			};
 			results.push(errorResult);
-			console.log(`❌ ${productId}: Request failed - ${error}`);
+			console.log(`${productId}: Request failed - ${error}`);
 		}
 
 		// Add a small delay between requests to avoid overwhelming the server
@@ -165,8 +165,8 @@ Output Files:
 	console.log('='.repeat(50));
 	console.log('📊 BATCH PREDICTION COMPLETED');
 	console.log('='.repeat(50));
-	console.log(`✅ Successful predictions: ${successCount}`);
-	console.log(`❌ Failed predictions: ${failCount}`);
+	console.log(`Successful predictions: ${successCount}`);
+	console.log(`Failed predictions: ${failCount}`);
 	console.log(`📈 Success rate: ${((successCount / 40) * 100).toFixed(2)}%`);
 	console.log(`⏱️  Total execution time: ${executionTime}`);
 	console.log(`📁 Results saved to: ${outputPath}`);
@@ -176,7 +176,7 @@ Output Files:
 // Run the batch predictions
 if (require.main === module) {
 	runBatchPredictions().catch((error) => {
-		console.error('❌ Batch prediction failed:', error);
+		console.error('Batch prediction failed:', error);
 		process.exit(1);
 	});
 }
