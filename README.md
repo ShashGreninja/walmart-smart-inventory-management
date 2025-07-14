@@ -1,36 +1,11 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Pitch Deck : https://www.figma.com/slides/CaAWwH9vwfDriS0iSA6Qvm/Walmart-Sparkathon?node-id=1-269&t=KhCtkH31Df4SoaB7-1
+Demo Link : https://drive.google.com/file/d/10Uw3--fMD4ep7aTU7vlTTN18rfMu3Sry/view?usp=sharing
 
-## Getting Started
+We have developed a NextJS- Tailwind based Admin Dashboard frontend which displays several crucial global parameters like revenue impact, some global KPIs, total supply risk alerts, etc. It shows the current high, medium and low demand products separately and displays a suggested stock purchase for all items in the database and features individual and batch prediction functionalities as well. A graph demonstrates the upcoming 14 day demand trend pictorically.
 
-First, run the development server:
+The backend contains an ML model that uses popular libraries like sci-kit learn, numpy, pandas, etc. It uses a Gradient Boosting Regressor to predict future demand. The several features involved in training the model include time related data(month/ day), historical sales trends, event (festivals/sales, etc) flags, external factors like temperature, etc. To predict, we enter sales history and current stock. The output includes
+a) A 14 day forecast
+b) Risk level (critical to low)
+c) Top factor affecting demand (reason of spike)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Overall, by ensuring the database is updated with relevant products, the admin can easily maintain a good stock of all products based on upcoming demand spikes; hence minimising losses, maximising revenue, and upholding retailer standards!
