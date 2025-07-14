@@ -1,4 +1,4 @@
-Smart Inventory Management System
+###Smart Inventory Management System
 
 Pitch Deck : https://www.figma.com/slides/CaAWwH9vwfDriS0iSA6Qvm/Walmart-Sparkathon?node-id=1-269&t=KhCtkH31Df4SoaB7-1
 Demo Link : https://drive.google.com/file/d/10Uw3--fMD4ep7aTU7vlTTN18rfMu3Sry/view?usp=sharing
