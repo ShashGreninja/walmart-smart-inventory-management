@@ -1,6 +1,7 @@
 ### Smart Inventory Management System
 
 Pitch Deck : https://www.figma.com/slides/CaAWwH9vwfDriS0iSA6Qvm/Walmart-Sparkathon?node-id=1-269&t=KhCtkH31Df4SoaB7-1
+
 Demo Link : https://drive.google.com/file/d/10Uw3--fMD4ep7aTU7vlTTN18rfMu3Sry/view?usp=sharing
 
 We have developed a NextJS- Tailwind based Admin Dashboard frontend which displays several crucial global parameters like revenue impact, some global KPIs, total supply risk alerts, etc. It shows the current high, medium and low demand products separately and displays a suggested stock purchase for all items in the database and features individual and batch prediction functionalities as well. A graph demonstrates the upcoming 14 day demand trend pictorically.
