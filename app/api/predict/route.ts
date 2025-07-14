@@ -1,5 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { predictInventory } from '@/components/predict-inventory';
+import { predictionQueries } from '@/lib/queries';
+import { RiskLevel } from '@prisma/client';
+
+// Parse prediction data to extract stock prediction and risk level
+const parsePredictionData = (data: any): { stockPredicted: number; riskLevel: RiskLevel; comment: string } => {
+	if (!data || !Array.isArray(data) || data.length === 0) {
+		throw new Error('Invalid prediction data format');
+	}
+
+	const predictionText = data[0] as string;
+
+	// Extract stock prediction (number before "units")
+	const stockMatch = predictionText.match(/📊\s*(\d+)\s*units/);
+	const stockPredicted = stockMatch ? parseInt(stockMatch[1]) : 0;
+
+	// Extract risk level
+	let riskLevel: RiskLevel = 'MEDIUM';
+	if (predictionText.includes('Critical risk')) {
+		riskLevel = 'CRITICAL';
+	} else if (predictionText.includes('High risk')) {
+		riskLevel = 'HIGH';
+	} else if (predictionText.includes('Low risk')) {
+		riskLevel = 'LOW';
+	}
+
+	// Extract comment (everything after the risk level)
+	const commentMatch = predictionText.match(/(?:Critical|High|Medium|Low)\s*risk,\s*(.+)$/);
+	const comment = commentMatch ? commentMatch[1] : 'No additional context';
+
+	return { stockPredicted, riskLevel, comment };
+};
 
 export async function POST(request: NextRequest) {
 	try {
@@ -22,15 +53,80 @@ export async function POST(request: NextRequest) {
 		// Call the predictInventory function
 		const result = await predictInventory(productId, currentStock);
 
-		// Return the prediction result
-		return NextResponse.json({
-			success: true,
-			data: result,
-			productId,
-			currentStock,
-		});
+		// Parse prediction data and save to database
+		try {
+			const { stockPredicted, riskLevel, comment } = parsePredictionData(result);
+
+			const savedPrediction = await predictionQueries.upsertPrediction({
+				productId,
+				currentStock,
+				stockPredicted,
+				riskLevel,
+				comment,
+				success: true,
+			});
+
+			console.log(`✅ Saved/Updated prediction for ${productId} in database`);
+
+			// Return the prediction result with database info
+			return NextResponse.json({
+				success: true,
+				data: result,
+				productId,
+				currentStock,
+				database: {
+					saved: true,
+					predictionId: savedPrediction.id,
+					stockPredicted,
+					riskLevel,
+					comment,
+				},
+			});
+		} catch (parseError) {
+			console.error(`Failed to parse/save prediction for ${productId}:`, parseError);
+
+			// Save with default values if parsing fails
+			const savedPrediction = await predictionQueries.upsertPrediction({
+				productId,
+				currentStock,
+				stockPredicted: 0,
+				riskLevel: 'MEDIUM',
+				comment: 'Failed to parse prediction data',
+				success: false,
+			});
+
+			// Still return the original prediction result even if parsing failed
+			return NextResponse.json({
+				success: true,
+				data: result,
+				productId,
+				currentStock,
+				database: {
+					saved: true,
+					predictionId: savedPrediction.id,
+					warning: 'Failed to parse prediction data, saved with default values',
+				},
+			});
+		}
 	} catch (error) {
 		console.error('API Error:', error);
+
+		// Try to save failed prediction to database
+		try {
+			const { productId, currentStock } = await request.json();
+			if (productId && currentStock !== undefined) {
+				await predictionQueries.upsertPrediction({
+					productId,
+					currentStock,
+					stockPredicted: 0,
+					riskLevel: 'MEDIUM',
+					comment: `Prediction failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+					success: false,
+				});
+			}
+		} catch (dbError) {
+			console.error('Failed to save error prediction to database:', dbError);
+		}
 
 		// Handle specific error types
 		if (error instanceof Error) {
