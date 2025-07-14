@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { predictionQueries } from '@/lib/queries';
+import { predictionQueries, inventoryQueries } from '@/lib/queries';
 import { RiskLevel } from '@prisma/client';
 
 interface PredictionResult {
@@ -50,7 +50,18 @@ const parsePredictionData = (data: any): { stockPredicted: number; riskLevel: Ri
 	return { stockPredicted, riskLevel, comment };
 };
 
-// Generate random stock levels for testing (you can modify this logic)
+// Fetch stock data from database for a specific product
+const getProductStock = async (productId: string): Promise<number | null> => {
+	try {
+		const inventoryRecord = await inventoryQueries.getProductStock(productId);
+		return inventoryRecord?.stockLevel || null;
+	} catch (error) {
+		console.error(`Failed to fetch stock for ${productId}:`, error);
+		return null;
+	}
+};
+
+// Generate random stock levels for testing (fallback when no DB stock found)
 const generateRandomStock = (): number => {
 	return Math.floor(Math.random() * 100) + 1; // Random number between 1 and 100
 };
@@ -166,11 +177,25 @@ const runBatchPredictions = async (): Promise<any> => {
 	const results: PredictionResult[] = [];
 	let successCount = 0;
 	let failCount = 0;
+	let dbStockCount = 0;
+	let fallbackStockCount = 0;
 
 	// Loop through P001 to P040
 	for (let i = 1; i <= 40; i++) {
 		const productId = `P${i.toString().padStart(3, '0')}`; // P001, P002, etc.
-		const currentStock = generateRandomStock();
+
+		// Try to fetch stock from database first
+		let currentStock = await getProductStock(productId);
+
+		if (currentStock !== null) {
+			dbStockCount++;
+			console.log(`${productId}: Using DB stock (${currentStock})`);
+		} else {
+			// Fallback to random stock if not found in DB
+			currentStock = generateRandomStock();
+			fallbackStockCount++;
+			console.log(`${productId}: Using fallback stock (${currentStock}) - not found in DB`);
+		}
 
 		try {
 			const result = await makePredictionRequest(productId, currentStock);
@@ -210,6 +235,8 @@ const runBatchPredictions = async (): Promise<any> => {
 	console.log(`Successful predictions: ${successCount}`);
 	console.log(`Failed predictions: ${failCount}`);
 	console.log(`📈 Success rate: ${((successCount / 40) * 100).toFixed(2)}%`);
+	console.log(`📦 Stock from DB: ${dbStockCount}`);
+	console.log(`🎲 Fallback stock: ${fallbackStockCount}`);
 	console.log(`⏱️  Total execution time: ${executionTime}`);
 	console.log(`💾 All predictions saved to database`);
 
@@ -254,6 +281,8 @@ const runBatchPredictions = async (): Promise<any> => {
 		successfulPredictions: successCount,
 		failedPredictions: failCount,
 		successRate: `${((successCount / 40) * 100).toFixed(2)}%`,
+		stockFromDatabase: dbStockCount,
+		fallbackStock: fallbackStockCount,
 		executionTime,
 		results: formattedResults,
 	};
