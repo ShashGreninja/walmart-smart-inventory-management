@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import fetch from 'node-fetch';
 import { parse } from 'csv-parse/sync';
+import { randomInt } from 'node:crypto';
 
 const prisma = new PrismaClient();
 
@@ -36,7 +37,8 @@ async function fetchAndBuildProducts(): Promise<ProductSeed[]> {
 	for (const row of records) {
 		const id = row.product_id;
 		if (!seen.has(id)) {
-			const units = parseInt(row.units_sold || '50') || 50;
+			// const units = parseInt(row.units_sold || '50') || 50;
+			const units = randomInt(2000);
 
 			seen.set(id, {
 				productId: id,
